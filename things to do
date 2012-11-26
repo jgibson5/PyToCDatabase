@@ -1,0 +1,17 @@
+
+GREEN
+client in py
+server in c
+
+py to c / c to py comm
+send serialized data --> list / array
+
+embed python into c files using what Joe found
+
+YELLOW
+Database for py obj
+send class def from py to c so we can unpickle it back
+
+ORANGE
+convert py section of server to pure c (w/ malloc and all)
+
