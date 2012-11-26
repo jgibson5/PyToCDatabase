@@ -1,7 +1,7 @@
 
 GREEN
-client in py
-server in c
+client in py --> JOE
+server in c - ABE
 
 py to c / c to py comm
 send serialized data --> list / array
