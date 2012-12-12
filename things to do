@@ -16,3 +16,55 @@ ORANGE
 convert py section of server to pure c (w/ malloc and all)
 
 http://www.linuxjournal.com/article/8497
+
+
+
+
+It would be great to get the C working -- probably doable.
+## The Python interpreter in the command line references the same header file (Python.h) to interact with regular Python objects. We used the Py-to-C API to store and modify the Python objects in the C-based server.
+
+Basic functions:
+
+1. Add class
+2. Add Instance of a Class
+3. Update Existing Instance
+4. Remove Class
+5. Remove Instance of a Class
+6. Get Data/Instance
+7. Run Method on Instance
+
+Possible functions:
+
+   extension of Func 7 to run methods on all instances, instances with specific attributes (search criteria)
+
+
+Start adding the feature of receiving the serialized Python object and recreating it in Python
+	Search for how RMI works - good infographics of how basic structure of RMI
+														 Reconstructing the class the way the RMI is supposed to be done -- actually mentioned Allen.
+
+
+Previous explorations:
+
+1. FTP .py file with Class definition to the server side so to reconstruct the object with its methods and attributes and everything.
+2. Serializing the Class definition itself. It didn't work because the class definition contains reference to lines of code in the .py file non-existent in the server side.
+					Returned module does not contain "[ClassName]()" error
+
+Project Progress
+
+ - started with Python-based server, client, and database as a proof of concept
+ - Explored embedding in C
+
+
+
+
+Presentation Outline:
+
+ - Background: There are certain objects that cannot be serialized by the infamous Python pickle because these objects rely on references to data that exist outside the Python shell
+ - Objective: database for user-defined Python objects (elaborate/make it sound cool/make it sound nice/suck up to Allen)
+ - Previous explorations: just start using tough technical terms and lots of alphabets
+ - Project Progress: Try to relate back to how previous explorations helped with our progress
+ - Our Project: explain API (basic functions hopefully including the possible functions)
+ - Demo: Show demo using Joe's computer --it would be marginally cool to show demo using two separate computers, especially when one's running Ubuntu and the other Windows
+ - Future Explorations: Next steps in the project (expand upon the database features and optimize database via sorting algorithms)
+
+ON THURSDAY, when preparing for the presentation, go back through hws to pull out the BUZZ WORDS to relate to the class
