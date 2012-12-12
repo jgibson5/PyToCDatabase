@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -lpython2.7
 WRAPPERS = wraplib.o wrapstdio.c wrapsock.o wrapunix.o error.o \
 writen.c readline.c
 FILES = error.c     str_cli08.c   tcpserv01.c  wrapsock.c   writen.c \

@@ -23,6 +23,7 @@
 #include	<sys/wait.h>
 #include	<sys/un.h>		/* for Unix domain sockets */
 #include	<sys/ioctl.h>
+//#include 	<Python.h>
 
 /* Following could be derived from SOMAXCONN in <sys/socket.h>, but many
    kernels still #define it as 5, while actually supporting many more */
@@ -92,6 +93,7 @@ char	*sock_ntop(const SA *, socklen_t);
 char	*sock_ntop_host(const SA *, socklen_t);
 int		 sockfd_to_family(int);
 void	 str_echo(int);
+int   	 store_class(int);
 void	 str_cli(FILE *, int);
 int		 tcp_connect(const char *, const char *);
 int		 tcp_listen(const char *, const char *, socklen_t *);

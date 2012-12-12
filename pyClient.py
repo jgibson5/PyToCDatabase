@@ -1,5 +1,35 @@
 import socket
 import sys
+import marshal
+import types
+
+# Takes a Class definition and returns changed
+# __dict__ for serialization.
+def marshalClass(c):
+    d = {}
+    for a, b in c.__dict__.items():
+        if type(b) == types.FunctionType:
+            d[a] = b.func_code
+        elif type(b) == types.GetSetDescriptorType:
+            pass
+        else:
+            d[a] = b
+    return d
+
+
+class Test(object):
+    def __init__(self, arg = 3):
+        self.arg = arg
+
+    def plus(self):
+        self.arg += 1
+
+t = Test()
+
+print t.__dict__
+print Test.__dict__
+print marshalClass(Test)
+m = marshal.dumps(marshalClass(Test))
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,19 +42,20 @@ sock.connect(server_address)
 try:
     
     # Send data
-    message = 'This is the message.  It will be repeated.'
-    print >>sys.stderr, 'sending "%s"' % message
-    sock.sendall(message)
+    sock.sendall(m)
 
     # Look for the response
-    amount_received = 0
-    amount_expected = len(message)
+    # amount_received = 0
+    # amount_expected = len(message)
     
-    while amount_received < amount_expected:
-        data = sock.recv(32)
-        amount_received += len(data)
-        print >>sys.stderr, 'received "%s"' % data
+    # while amount_received < amount_expected:
+    #     data = sock.recv(32)
+    #     amount_received += len(data)
+    #     print >>sys.stderr, 'received "%s"' % data
 
 finally:
     print >>sys.stderr, 'closing socket'
     sock.close()
+
+
+
