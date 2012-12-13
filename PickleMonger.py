@@ -3,20 +3,33 @@ from Exceptions import *
 
 class PickleMonger(object):
 
-  def __init__(self, objectMap={}, classDefs="{}", dbFileName=".pickleDB.dat", newDB=0):
+  def __init__(self, objectMap={}, classDefs="{}", dbFileName=".pickleDB.dat", classFileName=".classDB.dat" newDB=0):
     '''Note: Only set newDB to True iff when you want to create a new database. 
     This will wipe out any existing database with the dbFileName.
     '''
     self.db = dbFileName
-    self.objectMap = objectMap
-    self.classDefs = classDefs
-    
-    #dump objectMap onto the db only if creating a new DB
-    if newDB: 
+    self.classDB = classFileName
+
+    if newDB:
+      self.objectMap = objectMap
+      self.classDefs = classDefs
+
+      #dump objectMap and classDef sonto the db only if creating a new DB
       dbFile = open(self.db, 'w+b')
       pickle.dump(self.objectMap, dbFile)
-      pickle.dump(self.classDefs, dbFile)
       dbFile.close()
+      classFile = open(self.classDB, 'w+b')
+      pickle.dump(self.classDB, classFile)
+      classFile.close()
+
+    else:
+      #get objectMap and classDefs from DB if not creating a new DB
+      dbFile = open(self.db, 'r+b')
+      self.objectMap = pickle.load(dbFile)
+      dbFile.close()
+      classFile = open(self.classDB, 'r+b')
+      self.classDB = pickle.load(classFile)
+      classFile.close()
 
   def addClass(self, *args):
     '''adds new class(es) to the DB
