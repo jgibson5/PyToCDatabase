@@ -1,16 +1,18 @@
-class MultipleInstanceException(Exception):
+class DuplicateInstanceException(Exception):
     def __str__(self):
-        return "An instance of this object has already been saved to the \
-         database, run picklmonger.update() to modify the class"
+        return "An instance with the same name has already been saved to the \
+         database. Run PickleMonger.update(instanceName) to modify the existing instance."
 
-if __name__ == "__main__":
-    raise MultipleInstanceException()
-
-
-class MultipleModelException(Exception):
+class DuplicateClassException(Exception):
     def __str__(self):
-        return "A model with the same name is already in \
-        the database, rename the model you are trying to save"
+        return "A class with the same name already exists in \
+        the database. Rename the class you are trying to save."
 
-if __name__ == "__main__":
-    raise MultipleInstanceException()
+class MissingInstanceException(Exception):
+	def __str__(self):
+		return "No instance with such name exists in the database."
+
+class MissingClassException(Exception):
+	def __str__(self):
+		return "No class with such name exists in the database. Please add the \
+		class to the database prior to adding instances by running PickleMonger.addClass(className)"

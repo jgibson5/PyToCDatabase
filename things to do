@@ -20,6 +20,14 @@ http://www.linuxjournal.com/article/8497
 
 
 
+classname,
+attributes,
+methods
+
+{"name": "[name]", "attributes": [attributes], "methods":{methods}}
+		-- do we care about the attributes? I don't think so...
+
+
 It would be great to get the C working -- probably doable.
 ## The Python interpreter in the command line references the same header file (Python.h) to interact with regular Python objects. We used the Py-to-C API to store and modify the Python objects in the C-based server.
 
