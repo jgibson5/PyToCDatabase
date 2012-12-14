@@ -51,7 +51,7 @@ class PickleMonger(object):
     The above line returns a list of tuples of length 2 that groups the method name and the the method.
     You can call func_code on the second element of the tuple to get the method's func_code.
     '''
-    dbFile = open(self.db, 'r+b')
+    # dbFile = open(self.db, 'r+b')
     #currentObjectMap = pickle.load(dbFile)
     
     #parse through all classes the user wants to add.
@@ -68,7 +68,7 @@ class PickleMonger(object):
       self.classDefs[className] = {}
       classMethods = newClass["methods"] #dictionary that maps method names to each method's serialized func_code
       for methodName, method in classMethods:
-        self.classDefs[classname][methodName] = method
+        self.classDefs[className][methodName] = method
 
     dbFile = open(self.db, 'w+b')
     pickle.dump(self.objectMap, dbFile)
@@ -92,19 +92,22 @@ class PickleMonger(object):
     pickle.dump(self.objectMap, dbFile)
     dbFile.close()
 
-  def read(self, className, instanceName=None):
+  def get(self, className, *args, **kwargs):
     '''returns object(s) stored in the DB.
     '''
     if not className in self.objectMap.keys(): raise MissingClassException
     
     #if no instanceName is given, return all objects within the class.
-    if instanceName==None: 
-      return self.objectMap[className] 
-    else: 
-      if not instanceName in self.objectMap[className].keys():
-        raise MissingInstanceException
-
-      return self.objectMap[classname][instanceName]
+    if not len(args) and not len(kwargs.keys()):
+      return self.objectMap[className]
+    
+    instances = {}
+    if len(args):
+      for instanceName in args:
+        instances[instanceName] = self.objectMap[className][instanceName]
+        for attr, value in kwargs: #if there is a request to look for specific attributes, run it. if not, skip it.
+          #reconstruct class thing
+        return instances
 
   def removeClass(self, *args):
     '''remove an existing class
@@ -112,17 +115,19 @@ class PickleMonger(object):
     Note: this will remove all instances of the class along with the class definitions.
     '''
     for className in args:
-      if not classname in self.objectMap.keys(): raise MissingClassException
+      if not className in self.objectMap.keys(): raise MissingClassException
 
       del self.objectMap[className]
       del self.classDefs[className]
 
     dbFile = open(self.db, 'w+b')
     pickle.dump(self.objectMap, dbFile)
-    pickle.dump(self.classDefs, dbFile)
     dbFile.close()
+    classFile = open(self.classDB, 'w+b')
+    pickle.dump(self.classDB, classFile)
+    classFile.close()
 
-  def destroyObjectInstance(self, className, instanceName):
+  def removeInstance(self, className, instanceName):
     '''remove an instance of a class
     '''
     if not className in self.objectMap.keys(): raise MissingClassException
@@ -134,7 +139,31 @@ class PickleMonger(object):
     pickle.dump(self.objectMap, dbFile)
     dbFile.close()
 
+  def executeMethod(self, className, method, *args, **kwargs):
+    '''executes specified method on specified instances.
+    '''
+    instances = get(className, args, kwargs) #get instances
 
+    #reconstruct class & run methods
+
+    dbFile = open(self.db, 'w+b')
+    pickle.dump(self.objectMap, dbFile)
+    dbFile.close()
+
+    return results
+
+  def changeAttr(self, className, *args, **kwargs):
+    '''changes attributes of specific instances
+    '''
+    instances = get(className, *args)
+
+    #reconstruct class & change attributes
+
+    dbFile = open(self.db, 'w+b')
+    pickle.dump(self.objectMap, dbFile)
+    dbFile.close()
+
+    return instances
 
 # ##BASIC TEST CLASS AND MAIN FOR PICKLEMONGER###
 # class Model():
