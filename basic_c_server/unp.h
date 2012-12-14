@@ -23,7 +23,7 @@
 #include	<sys/wait.h>
 #include	<sys/un.h>		/* for Unix domain sockets */
 #include	<sys/ioctl.h>
-//#include 	<Python.h>
+// #include 	<Python.h>
 
 /* Following could be derived from SOMAXCONN in <sys/socket.h>, but many
    kernels still #define it as 5, while actually supporting many more */
@@ -178,7 +178,7 @@ void	 Getsockopt(int, int, int, void *, socklen_t *);
 int		 Isfdtype(int, int);
 void	 Listen(int, int);
 #ifdef	HAVE_POLL
-int		 Poll(struct pollfd *, unsigned long, int);
+//int		 Poll(struct pollfd *, unsigned long, int);
 #endif
 ssize_t	 Readline(int, void *, size_t);
 ssize_t	 Readn(int, void *, size_t);

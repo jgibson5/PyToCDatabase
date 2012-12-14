@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -lpython2.7
+CFLAGS = -Wall
 WRAPPERS = wraplib.o wrapstdio.c wrapsock.o wrapunix.o error.o \
 writen.c readline.c
 FILES = error.c     str_cli08.c   tcpserv01.c  wrapsock.c   writen.c \
@@ -8,10 +8,10 @@ readline.c  tcpcli01.c    wraplib.c    wrapunix.c
 
 
 tcpcli01:	tcpcli01.o str_cli08.o ${WRAPPERS}
-		${CC} ${CFLAGS} -o $@ tcpcli01.o str_cli08.o ${WRAPPERS}
+		${CC} ${CFLAGS} -o $@ tcpcli01.o str_cli08.o ${WRAPPERS} 
 
 tcpserv01:	tcpserv01.o str_echo08.o 
-		${CC} ${CFLAGS} -o $@ tcpserv01.o str_echo08.o ${WRAPPERS}
+		${CC} ${CFLAGS} -o $@ tcpserv01.o str_echo08.o ${WRAPPERS} -lpython2.7
 
 distrib:
 	rm -rf roman
@@ -22,3 +22,6 @@ distrib:
 
 clean:
 	rm *.o *~ tcpcli01 tcpserv01
+
+#		C_INCLUDE_PATH=/usr/include/python2.7
+#		export C_INCLUDE_PATH
