@@ -111,6 +111,10 @@ class Test(object):
 
     def plus(self):
         self.arg += 1
+        return self.arg
+
+    def __str__(self):
+        return "I am %d." % (self.arg,)
 
 
 
@@ -122,8 +126,10 @@ if __name__ == "__main__":
     p.addInstances(Test, t, b)
 
     r = p.getInstances(Test, "pass", arg=3)
-
+    print r[0]
     r = p.executeMethod(Test, "plus")
+    print r
+    r = p.executeMethod(Test, "plus", arg=4)
 
     
 

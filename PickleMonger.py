@@ -75,7 +75,7 @@ class PickleMonger(object):
       name = cl.__dict__['__name__']
       
       #if class with same name already exists, throw DuplicateClassException
-      if name in self.classDB.keys(): raise DuplicateClassException
+      if name in self.classDB.keys(): return#raise DuplicateClassException
 
       #populate self.objectMap and self.classes
       self.objectMap[name] = []

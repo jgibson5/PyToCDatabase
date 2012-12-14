@@ -9,6 +9,13 @@ class Test(object):
 
 	def extraCredit(self, points):
 		self.grade += points
+		return grade
+
+	def letterGrade(self):
+		if self.grade > 70:
+			return "pass"
+		else:
+			return "fail"
 
 if __name__ == "__main__":
 	PM = PickleMonger()
@@ -20,4 +27,6 @@ if __name__ == "__main__":
 
 	print PM.getInstances(Test)
 
-	PM.executeMethod(Test, "assignGrade")
+	values = PM.executeMethod(Test, "assignGrade")
+
+	print values
