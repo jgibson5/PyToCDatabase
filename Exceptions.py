@@ -1,12 +1,12 @@
 class DuplicateInstanceException(Exception):
-    def __str__(self):
-        return "An instance with the same name has already been saved to the \
-         database. Run PickleMonger.update(instanceName) to modify the existing instance."
+  def __str__(self):
+    return "An instance with the same name has already been saved to the \
+     database. Run PickleMonger.update(instanceName) to modify the existing instance."
 
 class DuplicateClassException(Exception):
-    def __str__(self):
-        return "A class with the same name already exists in \
-        the database. Rename the class you are trying to save."
+  def __str__(self):
+    return "A class with the same name already exists in \
+    the database. Rename the class you are trying to save."
 
 class MissingInstanceException(Exception):
 	def __str__(self):
