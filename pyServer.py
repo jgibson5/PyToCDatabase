@@ -1,6 +1,8 @@
 import socket
 import sys
 import marshal
+import pickle
+import types
 
 def constructClass(d):
     new = type('Test', (object,), d)
@@ -31,11 +33,24 @@ while True:
             data = connection.recv(8096)
             #print >>sys.stderr, 'received "%s"' % data
             if data:
-                a = marshal.loads(data)
-                t = constructClass(a)
-                print t
-                print >>sys.stderr, 'sending data back to the client'
-                # connection.sendall(data)
+                data = pickle.loads(data)
+                if data[1] != None:
+                    a = marshal.loads(data[1])
+                    t = constructClass(a)
+                    name = t.__dict__['__name__']
+                    globals()[name] = t
+                    for k, v in t.__dict__.items():
+                        if type(v) == types.CodeType:
+                            setattr(t, k, types.FunctionType(v, globals(), k))
+
+                    print >>sys.stderr, 'sending data back to the client'
+                    connection.sendall("SUCCESS")
+                else:
+                    print data[2]
+                    t = data[2][0]
+                    print t.arg
+                    print t.__dict__
+                break
             else:
                 print >>sys.stderr, 'no more data from', client_address
                 break
