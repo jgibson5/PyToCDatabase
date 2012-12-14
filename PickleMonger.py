@@ -30,8 +30,8 @@ class PickleMonger(object):
     else:
       #get objectMap and classDB from DB if not creating a new DB
       dbFile = open(self.db, 'r+b')
-      print dbFile.read()
-      # self.objectMap = pickle.load(dbFile)
+      
+      self.objectMap = pickle.load(dbFile)
       dbFile.close()
       classFile = open(self.classDBName, 'r+b')
       self.classDB = pickle.load(classFile)
@@ -99,36 +99,38 @@ class PickleMonger(object):
     globals()[className] = self.constructClass(self.classDB[className])
                             
     for instance in args[0]:
-      print instance
+      
       instanceName = instance.__name__
       self.objectMap[className].append(instance)
-      # setattr(globals, instanceName, instance)
-      # for instanceName, instanceObject in instance.keys():
-      #   if instanceName in self.objectMap[className].keys():
-      #     raise DuplicateInstanceException
-
-        # self.objectMap[className][instanceName] = instanceObject
-    print globals()
-    print self.objectMap
     self.saveObjects()
 
-  def get(self, className, *args, **kwargs):
+  def get(self, cl, args, kwargs):
     '''returns object(s) stored in the DB.
     '''
+    className = cl.__name__
     if not className in self.objectMap.keys(): raise MissingClassException
     
     #if no instanceName is given, return all objects within the class.
     if not len(args) and not len(kwargs.keys()):
       return self.objectMap[className]
     
-    instances = {}
-    if len(args):
-      for instanceName in args:
-        instances[instanceName] = self.objectMap[className][instanceName]
-        for attr, value in kwargs: #if there is a request to look for specific attributes, run it. if not, skip it.
-          pass
-          #reconstruct class thing
-        return instances
+    instances = self.objectMap[className]
+    ret = []
+    for i in instances:
+      flag = 0
+      for key, val in kwargs.items():
+        
+        if getattr(i, key) == val:
+          flag = 1
+      if flag or len(kwargs.keys())==0:
+        ret.append(i)
+    # if len(args):
+    #   for instanceName in args:
+    #     instances[instanceName] = self.objectMap[className][instanceName]
+    #     for attr, value in kwargs: #if there is a request to look for specific attributes, run it. if not, skip it.
+    #       pass
+    #       #reconstruct class thing
+    return ret
 
   def removeClass(self, *args):
     '''remove an existing class
@@ -160,18 +162,21 @@ class PickleMonger(object):
     pickle.dump(self.objectMap, dbFile)
     dbFile.close()
 
-  def executeMethod(self, className, method, *args, **kwargs):
+  def executeMethod(self, cl, method, *args, **kwargs):
     '''executes specified method on specified instances.
     '''
-    instances = get(className, args, kwargs) #get instances
-
-    #reconstruct class & run methods
+    instances = self.get(cl, args, kwargs) #get instances
+    name = cl.__name__
+    t = self.constructClass(self.classDB[name])
+    res = []
+    for i in instances:
+      res.append((i, t.__dict__[method](i)))
 
     dbFile = open(self.db, 'w+b')
     pickle.dump(self.objectMap, dbFile)
     dbFile.close()
 
-    return results
+    return res
 
   def changeAttr(self, className, *args, **kwargs):
     '''changes attributes of specific instances
@@ -232,8 +237,8 @@ class PickleMonger(object):
 #   PM.addObject(t2)
 #   PM.destroyObjectInstance('abe','n1')
 
-#   print PM.read('abe')
+
 
 #   abes = PM.read('abe')
 #   for i in range(len(abes)):
-#     print abes[i]
+

@@ -19,35 +19,39 @@ class PickleMonger(object):
         self.server_address = ('localhost', 80)
 
         
-    def send(self, command, c, instances = None, args = None, wait=100):
+    def send(self, command, c, instances = None, args = None, method = ""):
+        wait=100
         self.connect()
         self.sock.connect(self.server_address)
-        print >>sys.stderr, 'connecting to %s port %s' % self.server_address
+        
         
         if instances == None: instances = []
         if args == None: args = {}
-        
         try:
             # Send data
-            m = [command, c, instances]
+            m = [command, c, instances, args, method]
             t = pickle.dumps(m)
+            self.waiting = 1
             self.sock.sendall(pickle.dumps(m))
 
             # Look for the response
             t0 = datetime.datetime.now()
             t1 = datetime.datetime.now()
+            self.response = ""
             while ((t1 - t0).microseconds / 1000.0) + ((t1-t0).seconds * 1000.0) < wait:
+                
                 t1 = datetime.datetime.now()
 
                 data = self.sock.recv(1024)
                 if data != "":
-                    print data
+                    self.response += data
                     t0 = t1
                     t1 = datetime.datetime.now()
-                # print >>sys.stderr, 'received "%s"' % data
+                
+            self.waiting = 0
 
         finally:
-            print >>sys.stderr, 'closing socket'
+            
             self.sock.close()
 
         
@@ -72,14 +76,20 @@ class PickleMonger(object):
     def addInstances(self, c, *instances):
         self.send("addInstances", c, list(instances))
 
-    def getInstances(self, c, *instances, **args):
-        self.send("getInstances", c, list(instances), args)
+    def getInstances(self, c, *instances, **kwargs):
+        self.send("getInstances", c, list(instances), kwargs)
+        # while self.waiting:
+        #     pass
+        return pickle.loads(self.response)
 
     def removeClass(self, c):
         self.send("removeClass", c)
 
     def executeMethod(self, c, m, *instances, **args):
-        self.send("executeMethod", c, list(instances), args)
+        self.send("executeMethod", c, list(instances), args, m)
+        # while self.waiting:
+        #     pass
+        return pickle.loads(self.response)
 
     def changeAttr(self, c, attr, *instances, **args):
         self.send("changeAttr", c, list(instances), args)
@@ -95,7 +105,7 @@ def constructClass(m):
             setattr(new, k, types.FunctionType(v, globals(), k))
     return new
 
-class Test2(object):
+class Test(object):
     def __init__(self, arg = 3):
         self.arg = arg
 
@@ -106,10 +116,16 @@ class Test2(object):
 
 if __name__ == "__main__":
     p = PickleMonger()
-    p.addClass(Test2)
-    t = Test2()
-    b = Test2()
-    p.addInstances(Test2, t, b)
+    p.addClass(Test)
+    t = Test(5)
+    b = Test()
+    p.addInstances(Test, t, b)
+
+    r = p.getInstances(Test, "pass", arg=3)
+
+    r = p.executeMethod(Test, "plus")
+
+    
 
 
 
