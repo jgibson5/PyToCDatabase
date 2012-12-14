@@ -19,17 +19,18 @@ class PickleMonger(object):
         self.server_address = ('localhost', 80)
 
         
-    def send(self, command, c, instances = None, wait=100, **kwargs):
-        print >>sys.stderr, 'pre connection'
+    def send(self, command, c, instances = None, args = None, wait=100):
         self.connect()
         self.sock.connect(self.server_address)
         print >>sys.stderr, 'connecting to %s port %s' % self.server_address
+        
         if instances == None: instances = []
+        if args == None: args = {}
+        
         try:
             # Send data
             m = [command, c, instances]
             t = pickle.dumps(m)
-            print t
             self.sock.sendall(pickle.dumps(m))
 
             # Look for the response
@@ -40,6 +41,7 @@ class PickleMonger(object):
 
                 data = self.sock.recv(1024)
                 if data != "":
+                    print data
                     t0 = t1
                     t1 = datetime.datetime.now()
                 # print >>sys.stderr, 'received "%s"' % data
@@ -64,13 +66,34 @@ class PickleMonger(object):
                 d[a] = b
         return marshal.dumps(d)
 
-    def addClass(self, c):
-        self.send("addClass", self.marshalClass(c))
+    def addClass(self, *cls):
+        self.send("addClass", [self.marshalClass(c) for c in cls])
 
     def addInstances(self, c, *instances):
-        ms = list(instances)
-        self.send("addInstances", None, ms)
+        self.send("addInstances", c, list(instances))
 
+    def getInstances(self, c, *instances, **args):
+        self.send("getInstances", c, list(instances), args)
+
+    def removeClass(self, c):
+        self.send("removeClass", c)
+
+    def executeMethod(self, c, m, *instances, **args):
+        self.send("executeMethod", c, list(instances), args)
+
+    def changeAttr(self, c, attr, *instances, **args):
+        self.send("changeAttr", c, list(instances), args)
+
+
+def constructClass(m):
+    d = marshal.loads(m)
+    new = type('Test', (object,), d)
+    name = new.__dict__['__name__']
+    globals()[name] = new
+    for k, v in new.__dict__.items():
+        if type(v) == types.CodeType:
+            setattr(new, k, types.FunctionType(v, globals(), k))
+    return new
 
 class Test2(object):
     def __init__(self, arg = 3):
@@ -86,7 +109,6 @@ if __name__ == "__main__":
     p.addClass(Test2)
     t = Test2()
     b = Test2()
-    print Test2.__dict__
     p.addInstances(Test2, t, b)
 
 

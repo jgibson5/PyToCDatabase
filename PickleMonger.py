@@ -1,35 +1,51 @@
 import pickle
+import marshal
+import types
 from Exceptions import *
 
 class PickleMonger(object):
 
-  def __init__(self, objectMap={}, classDefs="{}", dbFileName=".pickleDB.dat", classFileName=".classDB.dat" newDB=0):
+  def __init__(self, objectMap=None, classDB=None, dbFileName=".pickleDB.dat", classFileName=".classDB.dat", newDB=0):
     '''Note: Only set newDB to True iff when you want to create a new database. 
     This will wipe out any existing database with the dbFileName.
     '''
+    if objectMap == None: objectMap = {}
+    if classDB == None: classDB = {}
+
     self.db = dbFileName
-    self.classDB = classFileName
+    self.classDBName = classFileName
 
     if newDB:
       self.objectMap = objectMap
-      self.classDefs = classDefs
+      self.classDB = classDB
 
       #dump objectMap and classDef sonto the db only if creating a new DB
       dbFile = open(self.db, 'w+b')
       pickle.dump(self.objectMap, dbFile)
       dbFile.close()
-      classFile = open(self.classDB, 'w+b')
+      classFile = open(self.classDBName, 'w+b')
       pickle.dump(self.classDB, classFile)
       classFile.close()
 
     else:
-      #get objectMap and classDefs from DB if not creating a new DB
+      #get objectMap and classDB from DB if not creating a new DB
       dbFile = open(self.db, 'r+b')
-      self.objectMap = pickle.load(dbFile)
+      print dbFile.read()
+      # self.objectMap = pickle.load(dbFile)
       dbFile.close()
-      classFile = open(self.classDB, 'r+b')
+      classFile = open(self.classDBName, 'r+b')
       self.classDB = pickle.load(classFile)
       classFile.close()
+
+  def saveClasses(self):
+    dbFile = open(self.classDBName, 'w+b')
+    pickle.dump(self.classDB, dbFile)
+    dbFile.close()
+
+  def saveObjects(self):
+    dbFile = open(self.db, 'w+b')
+    pickle.dump(self.objectMap, dbFile)
+    dbFile.close()
 
   def addClass(self, *args):
     '''adds new class(es) to the DB
@@ -56,41 +72,45 @@ class PickleMonger(object):
     
     #parse through all classes the user wants to add.
     for cl in args:            #cl should be a dictionary object that contains class definitions
-      newClass = pickle.load(cl)
-      className = newClass["name"]
+      name = cl.__dict__['__name__']
       
       #if class with same name already exists, throw DuplicateClassException
-      if className in self.objectmap.keys(): raise DuplicateClassException
+      if name in self.classDB.keys(): raise DuplicateClassException
 
       #populate self.objectMap and self.classes
-      self.objectMap[className] = {}
+      self.objectMap[name] = []
 
-      self.classDefs[className] = {}
-      classMethods = newClass["methods"] #dictionary that maps method names to each method's serialized func_code
-      for methodName, method in classMethods:
-        self.classDefs[className][methodName] = method
+      self.classDB[name] = self.marshalClass(cl)
+      # classMethods = newClass["methods"] #dictionary that maps method names to each method's serialized func_code
+      # for methodName, method in classMethods:
+      #   self.classDB[className][methodName] = method
+      self.saveObjects()
+      self.saveClasses()
+    
+    
 
-    dbFile = open(self.db, 'w+b')
-    pickle.dump(self.objectMap, dbFile)
-    dbFile.close()
-
-  def addInstance(self, className, *args):
+  def addInstance(self, cl, *args):
     '''adds instance(s) of a given class to the DB.
 
     Note: the parameter, instance, should be a dictionary that maps the instanceName to the pickled instance object
     '''
+    className = cl.__dict__['__name__']
     if not className in self.objectMap.keys(): raise MissingClassException
+    globals()[className] = self.constructClass(self.classDB[className])
+                            
+    for instance in args[0]:
+      print instance
+      instanceName = instance.__name__
+      self.objectMap[className].append(instance)
+      # setattr(globals, instanceName, instance)
+      # for instanceName, instanceObject in instance.keys():
+      #   if instanceName in self.objectMap[className].keys():
+      #     raise DuplicateInstanceException
 
-    for instance in args:
-      for instanceName, instanceObject in instance.keys():
-        if instanceName in self.objectMap[className].keys():
-          raise DuplicateInstanceException
-
-        self.objectMap[className][instanceName] = instanceObject
-
-    dbFile = open(self.db, 'w+b')
-    pickle.dump(self.objectMap, dbFile)
-    dbFile.close()
+        # self.objectMap[className][instanceName] = instanceObject
+    print globals()
+    print self.objectMap
+    self.saveObjects()
 
   def get(self, className, *args, **kwargs):
     '''returns object(s) stored in the DB.
@@ -106,6 +126,7 @@ class PickleMonger(object):
       for instanceName in args:
         instances[instanceName] = self.objectMap[className][instanceName]
         for attr, value in kwargs: #if there is a request to look for specific attributes, run it. if not, skip it.
+          pass
           #reconstruct class thing
         return instances
 
@@ -118,7 +139,7 @@ class PickleMonger(object):
       if not className in self.objectMap.keys(): raise MissingClassException
 
       del self.objectMap[className]
-      del self.classDefs[className]
+      del self.classDB[className]
 
     dbFile = open(self.db, 'w+b')
     pickle.dump(self.objectMap, dbFile)
@@ -164,6 +185,30 @@ class PickleMonger(object):
     dbFile.close()
 
     return instances
+
+  # Takes a Class definition and returns changed
+  # __dict__ for serialization.
+  def marshalClass(self, c):
+    d = {}
+    d['__name__'] = c.__name__
+    for a, b in c.__dict__.items():
+      if type(b) == types.FunctionType:
+        d[a] = b.func_code
+      elif type(b) == types.GetSetDescriptorType:
+        pass
+      else:
+        d[a] = b
+    return marshal.dumps(d)
+
+  def constructClass(self, m):
+    d = marshal.loads(m)
+    new = type('Test', (object,), d)
+    name = new.__dict__['__name__']
+    globals()[name] = new
+    for k, v in new.__dict__.items():
+      if type(v) == types.CodeType:
+         setattr(new, k, types.FunctionType(v, globals(), k))
+    return new
 
 # ##BASIC TEST CLASS AND MAIN FOR PICKLEMONGER###
 # class Model():
